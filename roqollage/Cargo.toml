@@ -1,0 +1,39 @@
+[package]
+name = "roqollage"
+version = "0.1.0"
+authors = ["HQS Quantum Simulations <info@quantumsimulations.de>"]
+license = "Apache-2.0"
+edition = "2021"
+rust-version = "1.56"
+categories = ["science", "simulation"]
+readme = "README.md"
+repository = "https://github.com/HQSquantumsimulations/qollage"
+description = "Typst interface for roqoqo Rust quantum computing toolkit by HQS Quantum Simulations"
+include = ["src*", "LICENSE", "README.md"]
+
+[lib]
+name = "roqollage"
+path = "src/lib.rs"
+doctest = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+roqoqo = { version = "1.12", features = ["serialize"] }
+qoqo_calculator = { version = "1.2" }
+typst = { git = "https://github.com/typst/typst", rev = "v0.11.0" }
+typst-render = { git = "https://github.com/typst/typst", rev = "v0.11.0" }
+comemo = "0.4"
+image = "0.24"
+ttf-parser = "0.20"
+time = "0.3"
+bytemuck = "1"
+ndarray = "0.15"
+num-complex = "0.4"
+ureq = "2.9"
+zune-inflate = "0.2"
+tar = "0.4"
+regex = "1.4"
+
+[dev-dependencies]
+test-case = "3.0"

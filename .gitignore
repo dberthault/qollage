@@ -1,0 +1,15 @@
+target/*
+qollage/target/*
+roqollage/target/*
+*__pycache__*
+*/docs/_build*
+*/docs/generated*
+.mypy_cache*
+*.egg-info*
+*.profraw
+*.DS_Store*
+coverage.lcov
+coveragehtml/*
+*.pytest_cache*
+*.vscode*
+*.qollage*
