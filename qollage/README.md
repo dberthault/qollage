@@ -6,11 +6,12 @@
 [![PyPI - Format](https://img.shields.io/pypi/format/qollage)](https://pypi.org/project/qollage/)
 ![Crates.io](https://img.shields.io/crates/l/qollage)
 
-Typst interface for the qoqo quantum toolkit by [HQS Quantum Simulations](https://quantumsimulations.de).
+Drawing tool for the qoqo quantum toolkit by [HQS Quantum Simulations](https://quantumsimulations.de).
 
-qollage provides the save_circuit and draw_circuit functions that allows users to translate a qoqo circuit into a png image and either save it or display it.  
-Not all qoqo operations have a corresponding Typst expression.  
-Circuits containing operations without a corresponding expression can not be translated.  
+Qollage provides the save_circuit and draw_circuit functions that allows users to translate a qoqo circuit into a png image and either save it or display it.  
+It also provides the circuit_to_typst_str that can be used to generate a string that can be copy pasted in the Typst interpreter if you want to edit the circuit further.  
+The latest qoqo gates might not be implemented in qollage yet.  
+A circuit containing not supported operations can't be drawn.  
 If a gate has a string parameter it will be printed inside a typst mathematical expression and the typst symbols will be replaced.  
 Alphanumerical expressions will be preprocessed, if it doesn't represent any typst symbol it will be escaped by surrounding quotes.  
 `qoqo.operations.RotateX(0, "theta")` will be formatted as `θ`.  

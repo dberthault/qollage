@@ -7,7 +7,7 @@ Typesetting tool for the qoqo/roqoqo quantum toolkit by [HQS Quantum Simulations
 This repository contains two components:
 
 * roqollage: the core rust library that builds on the roqoqo rust library.  
-* The qollage thepython interface to roqollage that uses the qoqo python interface
+* qollage: the python interface to roqollage that uses the qoqo python interface.
 
 This repository uses the [Typst](https://github.com/typst/typst) typesetting system with the [quill](https://github.com/Mc-Zen/quill/tree/main) package to create quantum circuits.
 ## qollage
@@ -20,9 +20,10 @@ This repository uses the [Typst](https://github.com/typst/typst) typesetting sys
 
 Typesetting tool for the qoqo quantum toolkit by [HQS Quantum Simulations](https://quantumsimulations.de).
 
-qollage provides the save_circuit and draw_circuit functions that allows users to translate a qoqo circuit into a png image and either save it or display it.  
-Not all qoqo operations have a corresponding Typst expression.  
-Circuits containing operations without a corresponding expression can not be translated.  
+Qollage provides the save_circuit and draw_circuit functions that allows users to translate a qoqo circuit into a png image and either save it or display it.  
+It also provides the circuit_to_typst_str that can be used to generate a string that can be copy pasted in the Typst interpreter if you want to edit the circuit further.  
+The latest qoqo gates might not be implemented in qollage yet.  
+A circuit containing not supported operations can't be drawn.  
 If a gate has a string parameter it will be printed inside a typst mathematical expression and the typst symbols will be replaced.  
 Alphanumerical expressions will be preprocessed, if it doesn't represent any typst symbol it will be escaped by surrounding quotes.  
 `qoqo.operations.RotateX(0, "theta")` will be formatted as `θ`.  
