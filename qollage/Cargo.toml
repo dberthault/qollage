@@ -8,7 +8,7 @@ rust-version = "1.56"
 categories = ["science", "simulation"]
 readme = "README.md"
 repository = "https://github.com/HQSquantumsimulations/qollage"
-description = "Typst interface for roqoqo Rust quantum computing toolkit by HQS Quantum Simulations"
+description = "Visualization tool for qoqo quantum computing toolkit by HQS Quantum Simulations"
 include = ["src*", "LICENSE", "README.md"]
 
 [lib]
@@ -22,7 +22,7 @@ doctest = false
 qoqo = { version = "1.12", default-features = false, features = [] }
 roqoqo = { version = "1.12", features = ["serialize"] }
 roqollage = { version = "0.1", path = "../roqollage" }
-image = "0.24"
+image = "0.25"
 
 [dependencies.pyo3]
 version = "0.21"
