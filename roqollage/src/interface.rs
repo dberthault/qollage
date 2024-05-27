@@ -63,13 +63,6 @@ fn effective_len(gates: &[String]) -> usize {
 ///
 /// * `circuit_gates` - A vector of all the gates vectors of the circuit.
 /// * `qubits` - A vector of the qubits to flatten.
-///
-/// # Example:
-/// ````
-/// let circuit_gates = vec![vec!["$H$", "1"], vec!["$X$"], vec![]];
-/// flatten_qubits(&mut circuit_gates, vec![0, 2]);
-///
-/// assert_eq!(circuit_gates, vec![vec!["$H$", "1"], vec!["$H$"], vec!["1", "1"]]);
 fn flatten_qubits(circuit_gates: &mut [Vec<String>], qubits: &[usize]) {
     let max_len = qubits
         .iter()
@@ -111,15 +104,6 @@ fn push_ones(circuit_gates: &mut [Vec<String>], min: usize, max: usize) {
 /// * `gate_vec_2` - A second vector of gates vectors of the circuit.
 /// * `vec_1_ind` - A vector of the indexes to flatten.
 /// * `vec_2_ind` - A vector of the indexes to flatten.
-///
-/// # Example:
-/// ````
-/// let circuit_gates = vec![vec!["$H$", "1"], vec!["$X$"], vec![]];
-/// let bosonic_gates = vec![vec!["$H$", "1"], vec!["$X$"], vec![]];
-/// flatten_multiple_vec(&mut circuit_gates, &mut bosonic_gates, vec![0, 2], vec![1]);
-///
-/// assert_eq!(circuit_gates, vec![vec!["$H$", "1"], vec!["$H$"], vec!["1", "1"]]);
-/// assert_eq!(bosonic_gates, vec![vec!["$H$", "1"], vec!["$H$", "1"], vec![]]);
 pub(crate) fn flatten_multiple_vec(
     gate_vec_1: &mut [Vec<String>],
     gate_vec_2: &mut [Vec<String>],
@@ -199,8 +183,16 @@ fn format_calculator(calculator: &CalculatorFloat) -> String {
             v if (v + std::f64::consts::PI).abs() < EPSILON => "-pi".to_owned(),
             v if (v - std::f64::consts::FRAC_PI_2).abs() < EPSILON => "pi/2".to_owned(),
             v if (v + std::f64::consts::FRAC_PI_2).abs() < EPSILON => "-pi/2".to_owned(),
+            v if (v - 3.0 * std::f64::consts::FRAC_PI_2).abs() < EPSILON => "(3pi)/2".to_owned(),
+            v if (v + 3.0 * std::f64::consts::FRAC_PI_2).abs() < EPSILON => "-(3pi)/2".to_owned(),
+            v if (v - std::f64::consts::FRAC_PI_3).abs() < EPSILON => "pi/3".to_owned(),
+            v if (v + std::f64::consts::FRAC_PI_3).abs() < EPSILON => "-pi/3".to_owned(),
+            v if (v - 2.0 * std::f64::consts::FRAC_PI_3).abs() < EPSILON => "(2pi)/3".to_owned(),
+            v if (v + 2.0 * std::f64::consts::FRAC_PI_3).abs() < EPSILON => "-(2pi)/3".to_owned(),
             v if (v - std::f64::consts::FRAC_PI_4).abs() < EPSILON => "pi/4".to_owned(),
             v if (v + std::f64::consts::FRAC_PI_4).abs() < EPSILON => "-pi/4".to_owned(),
+            v if (v - 3.0 * std::f64::consts::FRAC_PI_4).abs() < EPSILON => "(3pi)/4".to_owned(),
+            v if (v + 3.0 * std::f64::consts::FRAC_PI_4).abs() < EPSILON => "-(3pi)/4".to_owned(),
             v if (v - std::f64::consts::SQRT_2).abs() < EPSILON => "sqrt(2)".to_owned(),
             v if (v + std::f64::consts::SQRT_2).abs() < EPSILON => "-sqrt(2)".to_owned(),
             v if (v - std::f64::consts::FRAC_1_SQRT_2).abs() < EPSILON => "1/sqrt(2)".to_owned(),
@@ -279,39 +271,39 @@ fn format_qubit_input(qubit: usize, label: &str) -> String {
 /// * `circuit_gates` - A vector of all the gates vectors of the circuit.
 fn prepare_for_slice(circuit_gates: &mut Vec<Vec<String>>, circuit_lock: &mut Vec<(usize, usize)>) {
     add_qubits_vec(circuit_gates, &[0]);
-    let last_slice = circuit_gates[0]
-        .iter()
-        .filter(|gate| gate.contains("slice") || gate.contains("gategroup"))
-        .last();
-    if effective_len(&circuit_gates[0]).eq(&circuit_gates
-        .iter()
-        .map(|gates: &Vec<String>| effective_len(gates.as_slice()))
-        .max()
-        .unwrap_or(0))
-        && last_slice.is_some()
-    {
-        let divider = circuit_gates[0].len()
-            - circuit_gates[0]
-                .iter()
-                .position(|gate| gate.eq(last_slice.unwrap()))
-                .unwrap();
-        for _ in 0..last_slice
-            .unwrap()
-            .split('\n')
-            .last()
-            .unwrap_or(".")
-            .chars()
-            .count()
-            / (10 * divider)
-            + 1
-        {
-            circuit_gates[0].push("1".to_owned());
-        }
-    }
     if circuit_gates[0].is_empty() {
         circuit_gates[0].push("1".to_owned());
         for qubit in 1..10 {
             circuit_lock.push((qubit, 0))
+        }
+    } else {
+        let last_slice = circuit_gates[0]
+            .iter()
+            .filter(|gate| gate.contains("slice") || gate.contains("gategroup"))
+            .last();
+        if let Some(last_slice) = last_slice {
+            let dist_to_max = circuit_gates
+                .iter()
+                .map(|gates: &Vec<String>| effective_len(gates))
+                .max()
+                .unwrap_or(0)
+                - effective_len(&circuit_gates[0]);
+            let len_to_add = match circuit_gates[0]
+                .iter()
+                .rev()
+                .position(|gate| gate.eq(last_slice))
+                .unwrap()
+                + dist_to_max
+            {
+                0 => 5,
+                1 => 3,
+                2 => 1,
+                _ => 0,
+            };
+
+            for _ in 0..(len_to_add + dist_to_max) {
+                circuit_gates[0].push("1".to_owned());
+            }
         }
     }
 }
@@ -345,6 +337,17 @@ fn prepare_for_ctrl(
     flatten_qubits(circuit_gates, &[min, max]);
     for qubit in min + 1..max {
         circuit_lock.push((qubit, effective_len(&circuit_gates[min])));
+    }
+}
+
+fn prepare_for_bosonic(
+    mode: usize,
+    bosonic_gates: &mut [Vec<String>],
+    bosonic_lock: &mut Vec<(usize, usize)>,
+) {
+    while bosonic_lock.contains(&(mode, effective_len(&bosonic_gates[mode]))) {
+        bosonic_lock.retain(|&val| val != (mode, effective_len(&bosonic_gates[mode])));
+        bosonic_gates[mode].push("1".to_owned());
     }
 }
 
@@ -528,7 +531,7 @@ pub fn add_gate(
             let n_qubits = circuit_gates.len();
             flatten_qubits(circuit_gates, &(0..n_qubits).collect::<Vec<usize>>());
             circuit_gates[0].push(format!(
-                "slice(label: $ \"Measurements\nn={}\" $)",
+                "slice(label: $ \"Measurements\"\\ \"n={}\" $)",
                 op.number_measurements(),
             ));
             Ok(())
@@ -558,7 +561,7 @@ pub fn add_gate(
             let n_qubits = circuit_gates.len();
             flatten_qubits(circuit_gates, &(0..n_qubits).collect::<Vec<usize>>());
             circuit_gates[0].push(format!(
-                r#"slice(label: $ "RepeatNextGate\n{} times" $, stroke: (paint: black, thickness: 1pt, dash: "densely-dash-dotted"))"#,
+                r#"slice(label: $ "RepeatNextGate"\ {}" times" $, stroke: (paint: black, thickness: 1pt, dash: "densely-dash-dotted"))"#,
                 op.repetition_coefficient(),
             ));
             Ok(())
@@ -659,7 +662,7 @@ pub fn add_gate(
             let n_qubits = circuit_gates.len();
             flatten_qubits(circuit_gates, &(0..n_qubits).collect::<Vec<usize>>());
             circuit_gates[0].push(format!(
-                r#"slice(label: $ "GlobalPhase"\ p={} $)"#,
+                r#"slice(label: $ "GlobalPhase"\ {} $)"#,
                 format_calculator(op.phase()),
             ));
             Ok(())
@@ -778,7 +781,7 @@ pub fn add_gate(
             ));
             let old_len = circuit_gates
                 .iter()
-                .map(|gates| gates.len())
+                .map(|gates| effective_len(gates))
                 .collect::<Vec<usize>>();
             for operation in op.circuit().iter() {
                 add_gate(
@@ -793,7 +796,7 @@ pub fn add_gate(
             }
             let max_gates_len_diff = qubits
                 .iter()
-                .map(|&qubit| circuit_gates[qubit].len() - old_len[qubit])
+                .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
             circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
@@ -1188,11 +1191,7 @@ pub fn add_gate(
                     }
                 }
                 for boson in 0..bosonic_gates.len() {
-                    while bosonic_lock.contains(&(boson, effective_len(&bosonic_gates[boson]))) {
-                        bosonic_lock
-                            .retain(|&val| val != (boson, effective_len(&bosonic_gates[boson])));
-                        bosonic_gates[boson].push("1".to_owned());
-                    }
+                    prepare_for_bosonic(boson, bosonic_gates, bosonic_lock);
                     if bosonic_gates.len() > boson
                         && effective_len(&bosonic_gates[boson])
                             > effective_len(&circuit_gates[*op.qubit()])
@@ -1294,7 +1293,7 @@ pub fn add_gate(
             ));
             let old_len = circuit_gates
                 .iter()
-                .map(|gates| gates.len())
+                .map(|gates| effective_len(gates))
                 .collect::<Vec<usize>>();
             for operation in circuit.iter() {
                 add_gate(
@@ -1309,7 +1308,7 @@ pub fn add_gate(
             }
             let max_gates_len_diff = qubits
                 .iter()
-                .map(|&qubit| circuit_gates[qubit].len() - old_len[qubit])
+                .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
             circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
@@ -1362,7 +1361,7 @@ pub fn add_gate(
             ));
             let old_len = circuit_gates
                 .iter()
-                .map(|gates| gates.len())
+                .map(|gates| effective_len(gates))
                 .collect::<Vec<usize>>();
             for operation in circuit.iter() {
                 add_gate(
@@ -1377,7 +1376,7 @@ pub fn add_gate(
             }
             let max_gates_len_diff = qubits
                 .iter()
-                .map(|&qubit| circuit_gates[qubit].len() - old_len[qubit])
+                .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
             circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
@@ -1430,7 +1429,7 @@ pub fn add_gate(
             ));
             let old_len = circuit_gates
                 .iter()
-                .map(|gates| gates.len())
+                .map(|gates| effective_len(gates))
                 .collect::<Vec<usize>>();
             for operation in circuit.iter() {
                 add_gate(
@@ -1445,7 +1444,7 @@ pub fn add_gate(
             }
             let max_gates_len_diff = qubits
                 .iter()
-                .map(|&qubit| circuit_gates[qubit].len() - old_len[qubit])
+                .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
             circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
@@ -1507,7 +1506,7 @@ pub fn add_gate(
             ));
             let old_len = circuit_gates
                 .iter()
-                .map(|gates| gates.len())
+                .map(|gates| effective_len(gates))
                 .collect::<Vec<usize>>();
             for operation in circuit.iter() {
                 add_gate(
@@ -1522,7 +1521,7 @@ pub fn add_gate(
             }
             let max_gates_len_diff = qubits
                 .iter()
-                .map(|&qubit| circuit_gates[qubit].len() - old_len[qubit])
+                .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
             circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
@@ -1546,9 +1545,6 @@ pub fn add_gate(
             let min = used_qubits.iter().min().unwrap().to_owned();
             let max = used_qubits.iter().max().unwrap().to_owned();
             let qubits: Vec<usize> = (min..max + 1).collect();
-            if qubits.is_empty() {
-                return Ok(());
-            }
             add_qubits_vec(circuit_gates, &qubits);
             flatten_qubits(circuit_gates, &qubits);
             circuit_gates[min].push(format!(
@@ -1622,7 +1618,7 @@ pub fn add_gate(
             ));
             let old_len = circuit_gates
                 .iter()
-                .map(|gates| gates.len())
+                .map(|gates| effective_len(gates))
                 .collect::<Vec<usize>>();
             for operation in op.circuit().iter() {
                 add_gate(
@@ -1637,7 +1633,7 @@ pub fn add_gate(
             }
             let max_gates_len_diff = qubits
                 .iter()
-                .map(|&qubit| circuit_gates[qubit].len() - old_len[qubit])
+                .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
             circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
@@ -1772,7 +1768,7 @@ pub fn add_gate(
             }
             prepare_for_slice(circuit_gates, circuit_lock);
             let mut used_qubits: Vec<usize> = Vec::new();
-            match op.involved_qubits() {
+            match op.circuit().involved_qubits() {
                 InvolvedQubits::Set(involved_qubits) => {
                     for qubit in involved_qubits.iter() {
                         if !used_qubits.contains(qubit) {
@@ -1797,9 +1793,6 @@ pub fn add_gate(
             let min = used_qubits.iter().min().unwrap().to_owned();
             let max = used_qubits.iter().max().unwrap().to_owned();
             let qubits: Vec<usize> = (min..max + 1).collect();
-            if qubits.is_empty() {
-                return Ok(());
-            }
             add_qubits_vec(circuit_gates, &qubits);
             flatten_qubits(circuit_gates, &qubits);
             circuit_gates[min].push(format!(
@@ -1809,7 +1802,7 @@ pub fn add_gate(
             ));
             let old_len = circuit_gates
                 .iter()
-                .map(|gates| gates.len())
+                .map(|gates| effective_len(gates))
                 .collect::<Vec<usize>>();
             for operation in op.circuit().iter() {
                 add_gate(
@@ -1824,7 +1817,7 @@ pub fn add_gate(
             }
             let max_gates_len_diff = qubits
                 .iter()
-                .map(|&qubit| circuit_gates[qubit].len() - old_len[qubit])
+                .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
             circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
@@ -1834,11 +1827,7 @@ pub fn add_gate(
         }
         Operation::Squeezing(op) => {
             add_qubits_vec(bosonic_gates, &[*op.mode()]);
-            while bosonic_lock.contains(&(*op.mode(), effective_len(&bosonic_gates[*op.mode()]))) {
-                bosonic_lock
-                    .retain(|&val| val != (*op.mode(), effective_len(&bosonic_gates[*op.mode()])));
-                bosonic_gates[*op.mode()].push("1".to_owned());
-            }
+            prepare_for_bosonic(*op.mode(), bosonic_gates, bosonic_lock);
             bosonic_gates[*op.mode()].push(format!(
                 "gate($ \"Squeezing\"({},{}) $)",
                 format_calculator(op.squeezing()),
@@ -1848,11 +1837,7 @@ pub fn add_gate(
         }
         Operation::PhaseShift(op) => {
             add_qubits_vec(bosonic_gates, &[*op.mode()]);
-            while bosonic_lock.contains(&(*op.mode(), effective_len(&bosonic_gates[*op.mode()]))) {
-                bosonic_lock
-                    .retain(|&val| val != (*op.mode(), effective_len(&bosonic_gates[*op.mode()])));
-                bosonic_gates[*op.mode()].push("1".to_owned());
-            }
+            prepare_for_bosonic(*op.mode(), bosonic_gates, bosonic_lock);
             bosonic_gates[*op.mode()].push(format!(
                 "gate($ \"PhaseShift\"({}) $)",
                 format_calculator(op.phase()),
@@ -1865,10 +1850,7 @@ pub fn add_gate(
             let modes: Vec<usize> = (min..max + 1).collect();
             add_qubits_vec(bosonic_gates, &modes);
             for &mode in modes.iter() {
-                while bosonic_lock.contains(&(mode, effective_len(&bosonic_gates[mode]))) {
-                    bosonic_lock.retain(|&val| val != (mode, effective_len(&bosonic_gates[mode])));
-                    bosonic_gates[mode].push("1".to_owned());
-                }
+                prepare_for_bosonic(mode, bosonic_gates, bosonic_lock);
             }
             flatten_qubits(bosonic_gates, &modes);
             bosonic_gates[min].push(format!(
@@ -1886,11 +1868,7 @@ pub fn add_gate(
         }
         Operation::PhotonDetection(op) => {
             add_qubits_vec(bosonic_gates, &[*op.mode()]);
-            while bosonic_lock.contains(&(*op.mode(), effective_len(&bosonic_gates[*op.mode()]))) {
-                bosonic_lock
-                    .retain(|&val| val != (*op.mode(), effective_len(&bosonic_gates[*op.mode()])));
-                bosonic_gates[*op.mode()].push("1".to_owned());
-            }
+            prepare_for_bosonic(*op.mode(), bosonic_gates, bosonic_lock);
             bosonic_gates[*op.mode()].push("meter()".to_owned());
             Ok(())
         }
@@ -1927,9 +1905,6 @@ pub fn add_gate(
             let min = used_qubits.iter().min().unwrap().to_owned();
             let max = used_qubits.iter().max().unwrap().to_owned();
             let qubits: Vec<usize> = (min..max + 1).collect();
-            if qubits.is_empty() {
-                return Ok(());
-            }
             add_qubits_vec(circuit_gates, &qubits);
             flatten_qubits(circuit_gates, &qubits);
             circuit_gates[min].push(format!(
@@ -1962,11 +1937,7 @@ pub fn add_gate(
         }
         Operation::PhaseDisplacement(op) => {
             add_qubits_vec(bosonic_gates, &[*op.mode()]);
-            while bosonic_lock.contains(&(*op.mode(), effective_len(&bosonic_gates[*op.mode()]))) {
-                bosonic_lock
-                    .retain(|&val| val != (*op.mode(), effective_len(&bosonic_gates[*op.mode()])));
-                bosonic_gates[*op.mode()].push("1".to_owned());
-            }
+            prepare_for_bosonic(*op.mode(), bosonic_gates, bosonic_lock);
             bosonic_gates[*op.mode()].push(format!(
                 "gate($ \"PhaseDisplacement\"({},{}) $)",
                 format_calculator(op.displacement()),
@@ -1974,102 +1945,97 @@ pub fn add_gate(
             ));
             Ok(())
         }
-        // Operation::CallDefinedGate(op) => {
-        //     if op.qubits().len() == 0 {
-        //         return Err(RoqoqoBackendError::GenericError { msg: format!("Operations with no qubit in the input: {op:?}") });
-        //     }
-        //     let min = op.qubits().iter().min().unwrap().to_owned();
-        //     let max = op.qubits().iter().max().unwrap().to_owned();
-        //     let qubits: Vec<usize> = (min..max + 1).collect();
-        //     add_qubits_vec(circuit_gates, &qubits);
-        //     flatten_qubits(circuit_gates, &qubits);
-        //     circuit_gates[min].push(format!(
-        //         r#"mqgate($ "CallDefinedGate\n\"{}\"" $, n: {}, width: 11em, inputs: ({}))"#,
-        //         op.gate_name(),
-        //         qubits.len(),
-        //         op.qubits()
-        //             .iter()
-        //             .map(|qubit| format!("(qubit: {})", format_qubit_input(qubit - min, "x")))
-        //             .collect::<Vec<String>>()
-        //             .join(",")
-        //     ));
-        //     for qubit in min + 1..max + 1 {
-        //         circuit_gates[qubit].push("1".to_owned());
-        //     }
-        //     Ok(())
-        // }
-        // Operation::GateDefinition(op) => {
-        //     if op.circuit().len() == 0 {
-        //         return Ok(());
-        //     }
-        //     prepare_for_slice(circuit_gates, circuit_lock);
-        //     let mut used_qubits: Vec<usize> = Vec::new();
-        //     match op.circuit().involved_qubits() {
-        //         InvolvedQubits::Set(involved_qubits) => {
-        //             for qubit in involved_qubits.iter() {
-        //                 if !used_qubits.contains(qubit) {
-        //                     used_qubits.push(*qubit);
-        //                 }
-        //             }
-        //         }
-        //         InvolvedQubits::All => {
-        //             for qubit in 0..circuit_gates.len() {
-        //                 if !used_qubits.contains(&qubit) {
-        //                     used_qubits.push(qubit);
-        //                 }
-        //             }
-        //         }
-        //         InvolvedQubits::None => {}
-        //     }
-        //    if used_qubits.len() == 0 {
-        //        return Err(RoqoqoBackendError::GenericError { msg: format!("Operations with no qubit in the input: {op:?}") });
-        //    }
-        //     let min = used_qubits.iter().min().unwrap().to_owned();
-        //     let max = used_qubits.iter().max().unwrap().to_owned();
-        //     let qubits: Vec<usize> = (min..max + 1).collect();
-        //     if qubits.len() == 0 {
-        //         return Ok(());
-        //     }
-        //     add_qubits_vec(circuit_gates, &qubits);
-        //     flatten_qubits(circuit_gates, &qubits);
-        //     circuit_gates[min].push(format!(
-        //         "gategroup({}, replace_by_len, label: \"GateDefinition: {}\",  stroke: (dash: \"dotted\"))",
-        //         qubits.len(),
-        //         op.name(),
-        //     ));
-        //     let old_len = circuit_gates
-        //         .iter()
-        //         .map(|gates| gates.len())
-        //         .collect::<Vec<usize>>();
-        //     for operation in op.circuit().iter() {
-        //         add_gate(
-        //             circuit_gates,
-        //             bosonic_gates,
-        //             classical_gates,
-        //             circuit_lock,
-        //             bosonic_lock,
-        //             classical_lock,,
-        //             operation,
-        //         )?;
-        //     }
-        //     let max_gates_len_diff = qubits
-        //         .iter()
-        //         .map(|&qubit| circuit_gates[qubit].len() - old_len[qubit])
-        //         .max()
-        //         .unwrap_or(0);
-        //     circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
-        //         .replace("replace_by_len", &max_gates_len_diff.to_string());
-        //     flatten_qubits(circuit_gates, &qubits);
-        //     Ok(())
-        // }
+        Operation::CallDefinedGate(op) => {
+            if op.qubits().is_empty() {
+                return Err(RoqoqoBackendError::GenericError {
+                    msg: format!("Operations with no qubit in the input: {op:?}"),
+                });
+            }
+            let min = op.qubits().iter().min().unwrap().to_owned();
+            let max = op.qubits().iter().max().unwrap().to_owned();
+            let qubits: Vec<usize> = (min..max + 1).collect();
+            add_qubits_vec(circuit_gates, &qubits);
+            flatten_qubits(circuit_gates, &qubits);
+            circuit_gates[min].push(format!(
+                r#"mqgate($ "CallDefinedGate\n\"{}\"" $, n: {}, width: 11em, inputs: ({}))"#,
+                op.gate_name(),
+                qubits.len(),
+                op.qubits()
+                    .iter()
+                    .map(|qubit| format!("(qubit: {})", format_qubit_input(qubit - min, "x")))
+                    .collect::<Vec<String>>()
+                    .join(",")
+            ));
+            push_ones(circuit_gates, min, max);
+            Ok(())
+        }
+        Operation::GateDefinition(op) => {
+            if op.circuit().is_empty() {
+                return Ok(());
+            }
+            prepare_for_slice(circuit_gates, circuit_lock);
+            let mut used_qubits: Vec<usize> = Vec::new();
+            match op.circuit().involved_qubits() {
+                InvolvedQubits::Set(involved_qubits) => {
+                    for qubit in involved_qubits.iter() {
+                        if !used_qubits.contains(qubit) {
+                            used_qubits.push(*qubit);
+                        }
+                    }
+                }
+                InvolvedQubits::All => {
+                    for qubit in 0..circuit_gates.len() {
+                        if !used_qubits.contains(&qubit) {
+                            used_qubits.push(qubit);
+                        }
+                    }
+                }
+                InvolvedQubits::None => {}
+            }
+            if used_qubits.is_empty() {
+                return Err(RoqoqoBackendError::GenericError {
+                    msg: format!("Operations with no qubit in the input: {op:?}"),
+                });
+            }
+            let min = used_qubits.iter().min().unwrap().to_owned();
+            let max = used_qubits.iter().max().unwrap().to_owned();
+            let qubits: Vec<usize> = (min..max + 1).collect();
+            add_qubits_vec(circuit_gates, &qubits);
+            flatten_qubits(circuit_gates, &qubits);
+            circuit_gates[min].push(format!(
+                "gategroup({}, replace_by_len, label: \"GateDefinition: {}\",  stroke: (dash: \"dotted\"))",
+                qubits.len(),
+                op.name(),
+            ));
+            let old_len = circuit_gates
+                .iter()
+                .map(|gates| effective_len(gates))
+                .collect::<Vec<usize>>();
+            for operation in op.circuit().iter() {
+                add_gate(
+                    circuit_gates,
+                    bosonic_gates,
+                    classical_gates,
+                    circuit_lock,
+                    bosonic_lock,
+                    classical_lock,
+                    operation,
+                )?;
+            }
+            let max_gates_len_diff = qubits
+                .iter()
+                .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
+                .max()
+                .unwrap_or(0);
+            circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
+                .replace("replace_by_len", &max_gates_len_diff.to_string());
+            flatten_qubits(circuit_gates, &qubits);
+            Ok(())
+        }
         Operation::QuantumRabi(op) => {
             add_qubits_vec(bosonic_gates, &[*op.mode()]);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
-            while bosonic_lock.contains(&(*op.mode(), effective_len(&bosonic_gates[*op.mode()]))) {
-                bosonic_lock
-                    .retain(|&val| val != (*op.mode(), effective_len(&bosonic_gates[*op.mode()])));
-                bosonic_gates[*op.mode()].push("1".to_owned());
-            }
+            prepare_for_bosonic(*op.mode(), bosonic_gates, bosonic_lock);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
             add_qubits_vec(circuit_gates, &[*op.qubit()]);
             for qubit in *op.qubit() + 1..circuit_gates.len() + 10 {
@@ -2093,11 +2059,7 @@ pub fn add_gate(
         Operation::LongitudinalCoupling(op) => {
             add_qubits_vec(bosonic_gates, &[*op.mode()]);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
-            while bosonic_lock.contains(&(*op.mode(), effective_len(&bosonic_gates[*op.mode()]))) {
-                bosonic_lock
-                    .retain(|&val| val != (*op.mode(), effective_len(&bosonic_gates[*op.mode()])));
-                bosonic_gates[*op.mode()].push("1".to_owned());
-            }
+            prepare_for_bosonic(*op.mode(), bosonic_gates, bosonic_lock);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
             add_qubits_vec(circuit_gates, &[*op.qubit()]);
             for qubit in *op.qubit() + 1..circuit_gates.len() + 10 {
@@ -2121,11 +2083,7 @@ pub fn add_gate(
         Operation::JaynesCummings(op) => {
             add_qubits_vec(bosonic_gates, &[*op.mode()]);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
-            while bosonic_lock.contains(&(*op.mode(), effective_len(&bosonic_gates[*op.mode()]))) {
-                bosonic_lock
-                    .retain(|&val| val != (*op.mode(), effective_len(&bosonic_gates[*op.mode()])));
-                bosonic_gates[*op.mode()].push("1".to_owned());
-            }
+            prepare_for_bosonic(*op.mode(), bosonic_gates, bosonic_lock);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
             add_qubits_vec(circuit_gates, &[*op.qubit()]);
             for qubit in *op.qubit() + 1..circuit_gates.len() + 10 {
@@ -2149,11 +2107,7 @@ pub fn add_gate(
         Operation::SingleExcitationStore(op) => {
             add_qubits_vec(bosonic_gates, &[*op.mode()]);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
-            while bosonic_lock.contains(&(*op.mode(), effective_len(&bosonic_gates[*op.mode()]))) {
-                bosonic_lock
-                    .retain(|&val| val != (*op.mode(), effective_len(&bosonic_gates[*op.mode()])));
-                bosonic_gates[*op.mode()].push("1".to_owned());
-            }
+            prepare_for_bosonic(*op.mode(), bosonic_gates, bosonic_lock);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
             add_qubits_vec(circuit_gates, &[*op.qubit()]);
             for qubit in *op.qubit() + 1..circuit_gates.len() + 10 {
@@ -2174,11 +2128,7 @@ pub fn add_gate(
         Operation::SingleExcitationLoad(op) => {
             add_qubits_vec(bosonic_gates, &[*op.mode()]);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
-            while bosonic_lock.contains(&(*op.mode(), effective_len(&bosonic_gates[*op.mode()]))) {
-                bosonic_lock
-                    .retain(|&val| val != (*op.mode(), effective_len(&bosonic_gates[*op.mode()])));
-                bosonic_gates[*op.mode()].push("1".to_owned());
-            }
+            prepare_for_bosonic(*op.mode(), bosonic_gates, bosonic_lock);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
             add_qubits_vec(circuit_gates, &[*op.qubit()]);
             for qubit in *op.qubit() + 1..circuit_gates.len() + 10 {
@@ -2199,11 +2149,7 @@ pub fn add_gate(
         Operation::CZQubitResonator(op) => {
             add_qubits_vec(bosonic_gates, &[*op.mode()]);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
-            while bosonic_lock.contains(&(*op.mode(), effective_len(&bosonic_gates[*op.mode()]))) {
-                bosonic_lock
-                    .retain(|&val| val != (*op.mode(), effective_len(&bosonic_gates[*op.mode()])));
-                bosonic_gates[*op.mode()].push("1".to_owned());
-            }
+            prepare_for_bosonic(*op.mode(), bosonic_gates, bosonic_lock);
             flatten_multiple_vec(circuit_gates, bosonic_gates, &[*op.qubit()], &[*op.mode()]);
             add_qubits_vec(circuit_gates, &[*op.qubit()]);
             for qubit in *op.qubit() + 1..circuit_gates.len() {
