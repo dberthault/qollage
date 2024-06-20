@@ -75,7 +75,7 @@ This software is still in the beta stage. Functions and documentation are not ye
 ## Known issue
 
 If there are many gates that are represented by a slice the slice label might overlap or there might be some gaps between the slices.  
-If there is a gate represented by a slice inside a circuit used in a gate (i.e. PragmaLoop) the slice will got through all the qubits not only the ones used by the gate' circuit. Issues mentionned in the first line also applies here.
+If there is a gate represented by a slice inside a circuit used in a gate (example: PragmaLoop) the slice will go through all the qubits not only the ones used by the gate' circuit. Issues mentionned in the first line also applies here.
 
 ## Contributing
 
