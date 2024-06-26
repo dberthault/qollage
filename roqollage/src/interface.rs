@@ -799,7 +799,7 @@ pub fn add_gate(
                 .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
-            circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
+            circuit_gates[min][old_len[min]] = circuit_gates[min][old_len[min]]
                 .replace("replace_by_len", &max_gates_len_diff.to_string());
             flatten_qubits(circuit_gates, &qubits);
             Ok(())
@@ -1311,7 +1311,7 @@ pub fn add_gate(
                 .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
-            circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
+            circuit_gates[min][old_len[min]] = circuit_gates[min][old_len[min]]
                 .replace("replace_by_len", &max_gates_len_diff.to_string());
             flatten_qubits(circuit_gates, &qubits);
             Ok(())
@@ -1379,7 +1379,7 @@ pub fn add_gate(
                 .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
-            circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
+            circuit_gates[min][old_len[min]] = circuit_gates[min][old_len[min]]
                 .replace("replace_by_len", &max_gates_len_diff.to_string());
             flatten_qubits(circuit_gates, &qubits);
             Ok(())
@@ -1447,7 +1447,7 @@ pub fn add_gate(
                 .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
-            circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
+            circuit_gates[min][old_len[min]] = circuit_gates[min][old_len[min]]
                 .replace("replace_by_len", &max_gates_len_diff.to_string());
             flatten_qubits(circuit_gates, &qubits);
             Ok(())
@@ -1524,7 +1524,7 @@ pub fn add_gate(
                 .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
-            circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
+            circuit_gates[min][old_len[min]] = circuit_gates[min][old_len[min]]
                 .replace("replace_by_len", &max_gates_len_diff.to_string());
             flatten_qubits(circuit_gates, &qubits);
             Ok(())
@@ -1636,7 +1636,7 @@ pub fn add_gate(
                 .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
-            circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
+            circuit_gates[min][old_len[min]] = circuit_gates[min][old_len[min]]
                 .replace("replace_by_len", &max_gates_len_diff.to_string());
             flatten_qubits(circuit_gates, &qubits);
             Ok(())
@@ -1820,7 +1820,7 @@ pub fn add_gate(
                 .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
-            circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
+            circuit_gates[min][old_len[min]] = circuit_gates[min][old_len[min]]
                 .replace("replace_by_len", &max_gates_len_diff.to_string());
             flatten_qubits(circuit_gates, &qubits);
             Ok(())
@@ -2027,7 +2027,7 @@ pub fn add_gate(
                 .map(|&qubit| effective_len(&circuit_gates[qubit]) - old_len[qubit])
                 .max()
                 .unwrap_or(0);
-            circuit_gates[min][old_len[min] - 1] = circuit_gates[min][old_len[min] - 1]
+            circuit_gates[min][old_len[min]] = circuit_gates[min][old_len[min]]
                 .replace("replace_by_len", &max_gates_len_diff.to_string());
             flatten_qubits(circuit_gates, &qubits);
             Ok(())
