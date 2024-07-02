@@ -117,6 +117,7 @@ pub fn draw_circuit(
     render_pragmas: &str,
     initialization_mode: Option<String>,
 ) -> PyResult<()> {
+    println!("ALED");
     let circuit = convert_into_circuit(circuit).map_err(|x| {
         PyTypeError::new_err(format!("Cannot convert python object to Circuit: {x:?}"))
     })?;
@@ -179,6 +180,7 @@ pub fn circuit_to_typst_str(
     render_pragmas: &str,
     initialization_mode: Option<String>,
 ) -> PyResult<String> {
+    println!("ALED");
     let circuit = convert_into_circuit(circuit).map_err(|x| {
         PyTypeError::new_err(format!("Cannot convert python object to Circuit: {x:?}"))
     })?;

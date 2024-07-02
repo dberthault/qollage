@@ -20,7 +20,7 @@ use std::{
 
 use comemo::Prehashed;
 use image::DynamicImage;
-use roqoqo::{operations::Operate, Circuit, RoqoqoBackendError};
+use roqoqo::{Circuit, RoqoqoBackendError};
 use typst::{
     diag::{EcoString, FileError, FileResult, PackageError},
     eval::Tracer,
@@ -358,21 +358,6 @@ pub fn circuit_into_typst_str(
     let mut bosonic_lock: Vec<(usize, usize)> = Vec::new();
     let mut classical_lock: Vec<(usize, usize)> = Vec::new();
     for operation in circuit.iter() {
-        match render_pragmas {
-            RenderPragmas::All => (),
-            RenderPragmas::None => {
-                if operation.hqslang().starts_with("Pragma") {
-                    continue;
-                }
-            }
-            RenderPragmas::Partial(ref pragmas) => {
-                if operation.hqslang().starts_with("Pragma")
-                    && !pragmas.contains(&operation.hqslang().to_owned())
-                {
-                    continue;
-                }
-            }
-        }
         add_gate(
             &mut circuit_gates,
             &mut bosonic_gates,
@@ -381,6 +366,7 @@ pub fn circuit_into_typst_str(
             &mut bosonic_lock,
             &mut classical_lock,
             operation,
+            &render_pragmas,
         )?;
     }
     let n_qubits = circuit_gates.len();

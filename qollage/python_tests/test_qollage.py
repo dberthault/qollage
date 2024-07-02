@@ -20,7 +20,8 @@ def test_simple_draw() -> None:
     """Test drawing a circuit"""
     circuit = Circuit()
     circuit += ops.Hadamard(0)
-
+    circuit += ops.CNOT(0,1)
+    
     draw_circuit(circuit)
     typst_str = circuit_to_typst_str(circuit)
     save_circuit(circuit)
