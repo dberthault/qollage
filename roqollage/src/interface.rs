@@ -1716,7 +1716,6 @@ pub fn add_gate(
             Ok(())
         }
         Operation::ControlledControlledPauliZ(op) => {
-            println!("ControlledcontrolledPauliZ operation");
             let qubits = &[*op.control_0(), *op.target(), *op.control_1()];
             let min = qubits.iter().min().unwrap().to_owned();
             let max = qubits.iter().max().unwrap().to_owned();
@@ -1755,7 +1754,6 @@ pub fn add_gate(
             Ok(())
         }
         Operation::Toffoli(op) => {
-            println!("Toffoli");
             let qubits = &[*op.control_0(), *op.target(), *op.control_1()];
             let min = qubits.iter().min().unwrap().to_owned();
             let max = qubits.iter().max().unwrap().to_owned();

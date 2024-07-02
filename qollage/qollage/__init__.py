@@ -10,15 +10,16 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 
-"""Typst interface and backend for qoqo.
+"""Qollage
 
-Translates qoqo circuits to a Typst image via the Backend,
-and saves the image as a png file or diplay it in the output.
+qollage is the HQS python package to draw qoqo quantum circuits.
 
 .. autosummary::
     :toctree: generated/
 
-    TypstBackend
+    draw_circuit
+    save_circuit
+    circuit_to_typst_str
 
 """
 

@@ -10,6 +10,19 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 
+"""Qollage
+
+qollage is the HQS python package to draw qoqo quantum circuits.
+
+.. autosummary::
+    :toctree: generated/
+
+    draw_circuit
+    save_circuit
+    circuit_to_typst_str
+
+"""
+
 from qoqo import Circuit  # type: ignore
 from typing import Optional
 
