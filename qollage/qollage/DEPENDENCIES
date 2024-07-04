@@ -38777,7 +38777,7 @@ limitations under the License.
 
 
 ====================================================
-rustls-webpki 0.102.4
+rustls-webpki 0.102.5
 https://github.com/rustls/webpki
 by 
 Web PKI X.509 Certificate Verification.
@@ -57664,7 +57664,7 @@ license-mit:
 
 
 ====================================================
-windows-targets 0.52.5
+windows-targets 0.52.6
 https://github.com/microsoft/windows-rs
 by Microsoft
 Import libs for Windows
@@ -57901,7 +57901,7 @@ license-mit:
 
 
 ====================================================
-windows_aarch64_gnullvm 0.52.5
+windows_aarch64_gnullvm 0.52.6
 https://github.com/microsoft/windows-rs
 by Microsoft
 Import lib for Windows
@@ -58138,7 +58138,7 @@ license-mit:
 
 
 ====================================================
-windows_aarch64_msvc 0.52.5
+windows_aarch64_msvc 0.52.6
 https://github.com/microsoft/windows-rs
 by Microsoft
 Import lib for Windows
@@ -58375,7 +58375,7 @@ license-mit:
 
 
 ====================================================
-windows_i686_gnu 0.52.5
+windows_i686_gnu 0.52.6
 https://github.com/microsoft/windows-rs
 by Microsoft
 Import lib for Windows
@@ -58612,7 +58612,7 @@ license-mit:
 
 
 ====================================================
-windows_i686_gnullvm 0.52.5
+windows_i686_gnullvm 0.52.6
 https://github.com/microsoft/windows-rs
 by Microsoft
 Import lib for Windows
@@ -58849,7 +58849,7 @@ license-mit:
 
 
 ====================================================
-windows_i686_msvc 0.52.5
+windows_i686_msvc 0.52.6
 https://github.com/microsoft/windows-rs
 by Microsoft
 Import lib for Windows
@@ -59086,7 +59086,7 @@ license-mit:
 
 
 ====================================================
-windows_x86_64_gnu 0.52.5
+windows_x86_64_gnu 0.52.6
 https://github.com/microsoft/windows-rs
 by Microsoft
 Import lib for Windows
@@ -59323,7 +59323,7 @@ license-mit:
 
 
 ====================================================
-windows_x86_64_gnullvm 0.52.5
+windows_x86_64_gnullvm 0.52.6
 https://github.com/microsoft/windows-rs
 by Microsoft
 Import lib for Windows
@@ -59560,7 +59560,7 @@ license-mit:
 
 
 ====================================================
-windows_x86_64_msvc 0.52.5
+windows_x86_64_msvc 0.52.6
 https://github.com/microsoft/windows-rs
 by Microsoft
 Import lib for Windows
