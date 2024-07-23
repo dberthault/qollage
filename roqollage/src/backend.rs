@@ -335,7 +335,8 @@ impl FromStr for RenderPragmas {
 ///
 /// ## Returns
 ///
-/// * `DynamicImage` - The image generated from the typst string.
+/// * `Ok(DynamicImage)` - The image generated from the typst string.
+/// * `Err(RoqoqoBackendError)` - Error during the Typst compilation.
 pub fn render_typst_str(
     typst_str: String,
     pixels_per_point: Option<f32>,
