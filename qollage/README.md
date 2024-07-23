@@ -38,9 +38,6 @@ circuit += ops.MeasureQubit(1, "ro", 1)
 
 draw_circuit(circuit)
 ```
-It will output:
-
-<img src="../example_circuit.png" alt="Example" />
 
 ## General Notes
 

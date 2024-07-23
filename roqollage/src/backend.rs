@@ -20,7 +20,7 @@ use std::{
 
 use comemo::Prehashed;
 use image::DynamicImage;
-use roqoqo::{Circuit, RoqoqoBackendError};
+use roqoqo::{Circuit, RoqoqoBackendError, RoqoqoError};
 use typst::{
     diag::{EcoString, FileError, FileResult, PackageError},
     eval::Tracer,
@@ -103,7 +103,7 @@ impl TypstBackend {
             fonts,
             time: time::OffsetDateTime::now_utc(),
             dependencies: PathBuf::from_str(".qollage/cache").map_err(|_| {
-                RoqoqoBackendError::RoqoqoError(roqoqo::RoqoqoError::GenericError {
+                RoqoqoBackendError::RoqoqoError(RoqoqoError::GenericError {
                     msg: "Couldn't access `.qollage/cache` directory".to_owned(),
                 })
             })?,
@@ -259,11 +259,9 @@ impl FromStr for InitializationMode {
         match s.to_lowercase().as_str() {
             "state" => Ok(InitializationMode::State),
             "qubit" => Ok(InitializationMode::Qubit),
-            _ => Err(RoqoqoBackendError::RoqoqoError(
-                roqoqo::RoqoqoError::GenericError {
-                    msg: format!(r#"Invalid initialization mode: {s}, use `state` or `qubit`."#),
-                },
-            )),
+            _ => Err(RoqoqoBackendError::RoqoqoError(RoqoqoError::GenericError {
+                msg: format!(r#"Invalid initialization mode: {s}, use `state` or `qubit`."#),
+            })),
         }
     }
 }
@@ -326,6 +324,74 @@ impl FromStr for RenderPragmas {
             )),
         }
     }
+}
+
+/// Uses the Typst compiler to generate an image from the given typst string.
+///
+/// ## Arguments
+///
+/// * `typst_string` - The string to give to the typst compiler.
+/// * `pixels_per_point` - The pixel per point ratio.
+///
+/// ## Returns
+///
+/// * `DynamicImage` - The image generated from the typst string.
+pub fn render_typst_str(
+    typst_str: String,
+    pixels_per_point: Option<f32>,
+) -> Result<DynamicImage, RoqoqoBackendError> {
+    let typst_backend = TypstBackend::new(typst_str)?;
+    let mut tracer = Tracer::default();
+    let doc = typst::compile(&typst_backend, &mut tracer).map_err(|err| {
+        RoqoqoBackendError::GenericError {
+            msg: format!(
+                "Error during the Typst compilation: {}",
+                err.iter()
+                    .map(|source| format!(
+                        "error: {}, Hints: {}",
+                        source.message.as_str(),
+                        source
+                            .hints
+                            .iter()
+                            .map(EcoString::as_str)
+                            .collect::<Vec<&str>>()
+                            .join(","),
+                    ))
+                    .collect::<Vec<String>>()
+                    .join("\n")
+            ),
+        }
+    })?;
+    let mut writer = Cursor::new(Vec::new());
+    let background = Color::from_u8(255, 255, 255, 255);
+    let pixmap = typst_render::render(
+        &doc.pages
+            .first()
+            .ok_or("error")
+            .map_err(|_| RoqoqoBackendError::GenericError {
+                msg: "Typst document has no pages.".to_owned(),
+            })?
+            .frame,
+        pixels_per_point.unwrap_or(3.0),
+        background,
+    );
+    image::write_buffer_with_format(
+        &mut writer,
+        bytemuck::cast_slice(pixmap.pixels()),
+        pixmap.width(),
+        pixmap.height(),
+        image::ColorType::Rgba8,
+        image::ImageFormat::Png,
+    )
+    .map_err(|err| RoqoqoBackendError::GenericError {
+        msg: err.to_string(),
+    })?;
+    let image = image::load_from_memory(&writer.into_inner()).map_err(|err| {
+        RoqoqoBackendError::GenericError {
+            msg: err.to_string(),
+        }
+    })?;
+    Ok(image)
 }
 
 /// Converts a qoqo circuit to a typst string.
@@ -458,56 +524,5 @@ pub fn circuit_to_image(
     initializasion_mode: Option<InitializationMode>,
 ) -> Result<DynamicImage, RoqoqoBackendError> {
     let typst_str = circuit_into_typst_str(circuit, render_pragmas, initializasion_mode)?;
-    let typst_backend = TypstBackend::new(typst_str)?;
-    let mut tracer = Tracer::default();
-    let doc = typst::compile(&typst_backend, &mut tracer).map_err(|err| {
-        RoqoqoBackendError::GenericError {
-            msg: format!(
-                "Error during the Typst compilation: {}",
-                err.iter()
-                    .map(|source| format!(
-                        "error: {}, Hints: {}",
-                        source.message.as_str(),
-                        source
-                            .hints
-                            .iter()
-                            .map(EcoString::as_str)
-                            .collect::<Vec<&str>>()
-                            .join(","),
-                    ))
-                    .collect::<Vec<String>>()
-                    .join("\n")
-            ),
-        }
-    })?;
-    let mut writer = Cursor::new(Vec::new());
-    let background = Color::from_u8(255, 255, 255, 255);
-    let pixmap = typst_render::render(
-        &doc.pages
-            .first()
-            .ok_or("error")
-            .map_err(|_| RoqoqoBackendError::GenericError {
-                msg: "Typst document has no pages.".to_owned(),
-            })?
-            .frame,
-        pixels_per_point.unwrap_or(3.0),
-        background,
-    );
-    image::write_buffer_with_format(
-        &mut writer,
-        bytemuck::cast_slice(pixmap.pixels()),
-        pixmap.width(),
-        pixmap.height(),
-        image::ColorType::Rgba8,
-        image::ImageFormat::Png,
-    )
-    .map_err(|err| RoqoqoBackendError::GenericError {
-        msg: err.to_string(),
-    })?;
-    let image = image::load_from_memory(&writer.into_inner()).map_err(|err| {
-        RoqoqoBackendError::GenericError {
-            msg: err.to_string(),
-        }
-    })?;
-    Ok(image)
+    render_typst_str(typst_str, pixels_per_point)
 }
