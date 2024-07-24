@@ -117,7 +117,6 @@ pub fn draw_circuit(
     render_pragmas: &str,
     initialization_mode: Option<String>,
 ) -> PyResult<()> {
-    pyo3::prepare_freethreaded_python();
     let circuit = convert_into_circuit(circuit).map_err(|x| {
         PyTypeError::new_err(format!("Cannot convert python object to Circuit: {x:?}"))
     })?;
