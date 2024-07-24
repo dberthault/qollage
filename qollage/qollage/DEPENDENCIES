@@ -19914,7 +19914,7 @@ END OF TERMS AND CONDITIONS
 
 
 ====================================================
-jobserver 0.1.31
+jobserver 0.1.32
 https://github.com/rust-lang/jobserver-rs
 by Alex Crichton <alex@alexcrichton.com>
 An implementation of the GNU Make jobserver for Rust.
@@ -31960,7 +31960,7 @@ limitations under the License.
 
 
 ====================================================
-qollage 0.2.0
+qollage 0.2.1
 https://github.com/HQSquantumsimulations/qollage
 by HQS Quantum Simulations <info@quantumsimulations.de>
 Visualization tool for qoqo quantum computing toolkit by HQS Quantum Simulations
@@ -36473,7 +36473,7 @@ by Brian Smith <brian@briansmith.org>
 Safe, fast, small crypto using Rust.
 
 ====================================================
-roqollage 0.2.0
+roqollage 0.2.1
 https://github.com/HQSquantumsimulations/qollage
 by HQS Quantum Simulations <info@quantumsimulations.de>
 Visualization tool for roqoqo Rust quantum computing toolkit by HQS Quantum Simulations
@@ -38047,7 +38047,7 @@ limitations under the License.
 
 
 ====================================================
-rustls 0.23.11
+rustls 0.23.12
 https://github.com/rustls/rustls
 by 
 Rustls is a modern TLS library written in Rust.
@@ -39207,7 +39207,7 @@ You may use this code under the terms of either license.
 
 
 ====================================================
-scc 2.1.4
+scc 2.1.5
 https://github.com/wvwwvwwv/scalable-concurrent-containers/
 by wvwwvwwv <wvwwvwwv@me.com>
 High performance containers and utilities for concurrent and asynchronous programming
