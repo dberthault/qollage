@@ -2,6 +2,11 @@
 
 This changelog track changes to the qollage project starting at version v0.1.0
 
+## 0.2.0
+
+* Updated to qoqo 1.15 with support for `SqrtPauliY` and `InvSqrtPauliY`.
+* Export render_typst_str in roqollage to allow other packages to use the typst compilation.
+
 ## 0.1.0
 
 * Initial commit.

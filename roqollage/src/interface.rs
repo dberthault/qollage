@@ -2231,6 +2231,16 @@ pub fn add_gate(
             }
             Ok(())
         }
+        Operation::SqrtPauliY(op) => {
+            add_qubits_vec(circuit_gates, &[*op.qubit()]);
+            circuit_gates[*op.qubit()].push("$ sqrt(Y) $".to_owned());
+            Ok(())
+        }
+        Operation::InvSqrtPauliY(op) => {
+            add_qubits_vec(circuit_gates, &[*op.qubit()]);
+            circuit_gates[*op.qubit()].push("$ sqrt(Y)^(dagger) $".to_owned());
+            Ok(())
+        }
         _ => ALLOWED_OPERATIONS
             .contains(&operation.hqslang())
             .then(|| Ok(()))
