@@ -2,6 +2,12 @@
 
 This changelog track changes to the qollage project starting at version v0.1.0
 
+## 0.3.0
+
+* Changed the number formatting to not display `0.00` if the number is < 0.01
+* Added test for `SqrtPauliY` and `InvSqrtPauliY`.
+* Fixed a release bug.
+
 ## 0.2.2
 
 * Fixed a bug where a gate that has an optional circuit would sometimes fail to be rendered (e.g. PragmaGetStateVector)

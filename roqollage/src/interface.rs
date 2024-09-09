@@ -169,6 +169,16 @@ fn format_symbol_str(str_value: &str) -> String {
     }
 }
 
+fn count_digits(num: f64) -> usize {
+    let num_str: String = num
+        .to_string()
+        .chars()
+        .skip_while(|&c| c == '.' || c == '0' || c == '-')
+        .collect();
+    let count = num_str.chars().filter(|&c| c != '.').count();
+    count
+}
+
 /// Formats a calculatorFloat to be displayed in a typst representation.
 ///
 /// # Arguments
@@ -199,6 +209,12 @@ fn format_calculator(calculator: &CalculatorFloat) -> String {
             v if (v + std::f64::consts::SQRT_2).abs() < EPSILON => "-sqrt(2)".to_owned(),
             v if (v - std::f64::consts::FRAC_1_SQRT_2).abs() < EPSILON => "1/sqrt(2)".to_owned(),
             v if (v + std::f64::consts::FRAC_1_SQRT_2).abs() < EPSILON => "-1/sqrt(2)".to_owned(),
+            v if v.abs() <= 0.005 || v.abs() >= 1000. => match count_digits(*v) {
+                0 => "0".to_owned(),
+                1 => format!("\"{:e}\"", v),
+                2 => format!("\"{:.1e}\"", v),
+                _ => format!("\"{:.2e}\"", v),
+            },
             _ => {
                 if float_value.fract() == 0.0 {
                     format!("{:.0}", float_value)
