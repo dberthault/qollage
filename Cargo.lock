@@ -1736,7 +1736,7 @@ dependencies = [
 
 [[package]]
 name = "qollage"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "image 0.25.2",
  "ndarray",
@@ -2046,7 +2046,7 @@ dependencies = [
 
 [[package]]
 name = "roqollage"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "bytemuck",
  "comemo",

@@ -31,7 +31,7 @@ use typst::{
     Library,
 };
 
-use crate::{add_gate, flatten_multiple_vec};
+use crate::{add_gate, effective_len, flatten_multiple_vec};
 
 /// Typst Backend
 ///
@@ -395,6 +395,50 @@ pub fn render_typst_str(
     Ok(image)
 }
 
+fn effective_split(mut vec: Vec<String>, split_index: usize) -> (Vec<String>, Vec<String>) {
+    let mut first = vec![];
+    while effective_len(first.as_slice()) < split_index + 1 {
+        first.push(vec.remove(0));
+    }
+    (first, vec)
+}
+
+fn split_gates(gates_vec: &mut [Vec<String>], max_len: usize) -> Option<Vec<Vec<Vec<String>>>> {
+    if !gates_vec.is_empty() && gates_vec[0].len() > max_len {
+        let mut chunks: Vec<Vec<Vec<String>>> = vec![];
+        let mut inner_chunks: Vec<Vec<String>> = vec![];
+        for _ in 0..gates_vec.len() {
+            inner_chunks.push(vec![]);
+        }
+        for _ in 0..(gates_vec[0].len() / max_len) {
+            chunks.push(inner_chunks.clone());
+        }
+        for (ind, inner_vec) in gates_vec.iter_mut().enumerate() {
+            let mut ind_chunk = 0;
+            let cloned_gates = inner_vec.clone();
+            let (first_part, rest) = effective_split(cloned_gates, max_len);
+            inner_vec.truncate(first_part.len());
+
+            let mut remaining = rest.to_vec();
+
+            while effective_len(remaining.as_slice()) > max_len {
+                let (chunk, rest_of_remaining) = effective_split(remaining, max_len);
+                chunks[ind_chunk][ind].extend_from_slice(chunk.as_slice());
+                ind_chunk += 1;
+                remaining = rest_of_remaining.to_vec();
+            }
+            if !remaining.is_empty() {
+                chunks[ind_chunk][ind].extend_from_slice(remaining.as_slice());
+            }
+        }
+        if chunks.last().is_some() && chunks.last().unwrap().iter().all(Vec::is_empty) {
+            chunks.pop();
+        }
+        return Some(chunks);
+    }
+    None
+}
+
 /// Converts a qoqo circuit to a typst string.
 ///
 ///  ## Arguments
@@ -410,6 +454,7 @@ pub fn circuit_into_typst_str(
     circuit: &Circuit,
     render_pragmas: RenderPragmas,
     initializasion_mode: Option<InitializationMode>,
+    max_length: Option<usize>,
 ) -> Result<String, RoqoqoBackendError> {
     let mut typst_str = r#"#set page(width: auto, height: auto, margin: 5pt)
 #show math.equation: set text(font: "Fira Math")
@@ -457,6 +502,14 @@ pub fn circuit_into_typst_str(
         (0..n_bosons).collect::<Vec<usize>>().as_slice(),
         (0..n_classical).collect::<Vec<usize>>().as_slice(),
     );
+    let mut additional_circuit_gates = None;
+    let mut additional_bosonic_gates = None;
+    let mut additional_classical_gates = None;
+    if let Some(max_circuit_length) = max_length {
+        additional_circuit_gates = split_gates(&mut circuit_gates, max_circuit_length);
+        additional_bosonic_gates = split_gates(&mut bosonic_gates, max_circuit_length);
+        additional_classical_gates = split_gates(&mut classical_gates, max_circuit_length);
+    }
     let mut is_first = true;
     for (n_qubit, gates) in circuit_gates.iter().enumerate() {
         typst_str.push_str(&format!(
@@ -498,6 +551,77 @@ pub fn circuit_into_typst_str(
     for gates in classical_gates.iter() {
         typst_str.push_str(&format!("       {}, 1, [\\ ],\n", gates.join(", ")));
     }
+    if max_length.is_some()
+        && (additional_circuit_gates.is_some()
+            || additional_bosonic_gates.is_some()
+            || additional_classical_gates.is_some())
+    {
+        let number_of_chunks = additional_circuit_gates
+            .as_ref()
+            .map(|v| v.len())
+            .unwrap_or({
+                additional_bosonic_gates
+                    .as_ref()
+                    .map(|v| v.len())
+                    .unwrap_or(
+                        additional_classical_gates
+                            .as_ref()
+                            .map(|v| v.len())
+                            .unwrap_or_default(),
+                    )
+            });
+        for chunk_number in 0..number_of_chunks {
+            if let Some(ref add_circuit_gates) = additional_circuit_gates {
+                let current_chunk = &add_circuit_gates[chunk_number];
+                is_first = true;
+                for gates in current_chunk.iter() {
+                    typst_str.push_str(&format!(
+                        "{}       lstick($${}), {}, 1, [\\ ],\n",
+                        is_first.then(|| "[\\ ],\n").unwrap_or_default(),
+                        is_first.then(|| ", label: \"Qubits\"").unwrap_or_default(),
+                        gates
+                            .iter()
+                            .map(|gate| {
+                                if gate.contains("replace_by_n_qubits_") {
+                                    replace_boson_index(gate, n_qubits, n_bosons)
+                                } else if gate.contains("replace_by_classical_len_") {
+                                    replace_classical_index(gate, n_qubits, n_bosons, n_classical)
+                                } else {
+                                    gate.to_owned()
+                                }
+                            })
+                            .collect::<Vec<String>>()
+                            .join(", ")
+                    ));
+                    is_first = false;
+                }
+            }
+            if let Some(ref add_bosonic_gates) = additional_bosonic_gates {
+                let current_chunk = &add_bosonic_gates[chunk_number];
+                is_first = true;
+                for gates in current_chunk.iter() {
+                    typst_str.push_str(&format!(
+                        "{}       lstick($${}), {}, 1, [\\ ],\n",
+                        is_first.then(|| "[\\ ],\n").unwrap_or_default(),
+                        is_first.then(|| ", label: \"Bosons\"").unwrap_or_default(),
+                        gates.join(", ")
+                    ));
+                    is_first = false;
+                }
+            }
+            if let Some(ref add_classical_gates) = additional_classical_gates {
+                let current_chunk = &add_classical_gates[chunk_number];
+                for (index, gates) in current_chunk.clone().iter_mut().enumerate() {
+                    gates.insert(0, classical_gates[index][1].clone());
+                    typst_str.push_str(&format!(
+                        "{}       lstick($$), {}, 1, [\\ ],\n",
+                        is_first.then(|| "[\\ ],\n").unwrap_or_default(),
+                        gates.join(", "),
+                    ));
+                }
+            }
+        }
+    }
     typst_str = typst_str
         .strip_suffix(" [\\ ],\n")
         .map(str::to_owned)
@@ -523,7 +647,9 @@ pub fn circuit_to_image(
     pixels_per_point: Option<f32>,
     render_pragmas: RenderPragmas,
     initializasion_mode: Option<InitializationMode>,
+    max_length: Option<usize>,
 ) -> Result<DynamicImage, RoqoqoBackendError> {
-    let typst_str = circuit_into_typst_str(circuit, render_pragmas, initializasion_mode)?;
+    let typst_str =
+        circuit_into_typst_str(circuit, render_pragmas, initializasion_mode, max_length)?;
     render_typst_str(typst_str, pixels_per_point)
 }
