@@ -397,7 +397,7 @@ pub fn render_typst_str(
 
 fn effective_split(mut vec: Vec<String>, split_index: usize) -> (Vec<String>, Vec<String>) {
     let mut first = vec![];
-    while effective_len(first.as_slice()) < split_index + 1 {
+    while effective_len(first.as_slice()) < split_index {
         first.push(vec.remove(0));
     }
     (first, vec)
