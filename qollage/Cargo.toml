@@ -41,3 +41,7 @@ pyo3 = "0.21"
 [features]
 extension-module = ["pyo3/extension-module"]
 default = ["extension-module"]
+unstable_operation_definition = [
+    "roqoqo/unstable_operation_definition",
+    "roqollage/unstable_operation_definition",
+]

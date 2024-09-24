@@ -39,3 +39,6 @@ regex = "1.4"
 [dev-dependencies]
 test-case = "3.0"
 serial_test = "3.1"
+
+[features]
+unstable_operation_definition = ["roqoqo/unstable_operation_definition"]
