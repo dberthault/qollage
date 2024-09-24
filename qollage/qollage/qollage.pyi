@@ -48,7 +48,7 @@ def draw_circuit(
              - "state" for "|0>". Used if None. \n
              - "qubit" for "q[n]".\n
          * max_circuit_length (Optional(int)): The maximum number of gates per qubit before going to a new line.
-             Default None will never do a newline.
+             The default setting `None` does not create a new line.
 
     ## Raises:
          * TypeError: Circuit conversion error.
@@ -79,7 +79,7 @@ def save_circuit(
              - "state" for "|0>". Used if None. \n
              - "qubit" for "q[n]".\n
          * max_circuit_length (Optional(int)): The maximum number of gates per qubit before going to a new line.
-             Default None will never do a newline.
+             The default setting `None` does not create a new line.
 
     ## Raises:
          * TypeError: Circuit conversion error
@@ -107,7 +107,7 @@ def circuit_to_typst_str(
              - "state" for "|0>". Used if None. \n
              - "qubit" for "q[n]".\n
          * max_circuit_length (Optional(int)): The maximum number of gates per qubit before going to a new line.
-             Default None will never do a newline.
+             The default setting `None` does not create a new line.
 
     ## Returns:
          * str: The circuit's representation in Typst.

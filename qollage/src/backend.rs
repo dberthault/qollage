@@ -33,7 +33,7 @@ use roqollage::{circuit_into_typst_str, circuit_to_image, InitializationMode, Re
 ///     initialization_mode (String): What to display at the begginning of the circuit. "state" for "|0>" and  
 ///         "qubit" for "q[n]" State will be used if the parameter is not set.
 ///     max_circuit_length (Optional(int)): The maximum number of gates per qubit before going to a new line.
-///         Default None will never do a newline.
+///         The default setting `None` does not create a new line.
 ///
 /// Raises:
 ///     TypeError: Circuit conversion error
@@ -102,7 +102,7 @@ pub fn save_circuit(
 ///     initialization_mode (String): What to display at the begginning of the circuit. "state" for "|0>" and  
 ///         "qubit" for "q[n]" State will be used if the parameter is not set.
 ///     max_circuit_length (Optional(int)): The maximum number of gates per qubit before going to a new line.
-///         Default None will never do a newline.
+///         The default setting `None` does not create a new line.
 ///
 /// Raises:
 ///     TypeError: Circuit conversion error
@@ -168,7 +168,7 @@ pub fn draw_circuit(
 ///     initialization_mode (String): What to display at the begginning of the circuit. "state" for "|0>" and  
 ///         "qubit" for "q[n]" State will be used if the parameter is not set.
 ///     max_circuit_length (Optional(int)): The maximum number of gates per qubit before going to a new line.
-///         Default None will never do a newline.
+///         The default setting `None` does not create a new line.
 ///
 /// Raises:
 ///     TypeError: Circuit conversion error
