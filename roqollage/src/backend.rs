@@ -123,7 +123,7 @@ impl TypstBackend {
         .map_err(|err| RoqoqoBackendError::GenericError {
             msg: format!("Couldn't create the font directory: {err}."),
         })?;
-        let url = "https://mirror.clientvps.com/CTAN/fonts/firamath/FiraMath-Regular.otf";
+        let url = "https://mirrors.ctan.org/fonts/firamath/FiraMath-Regular.otf";
 
         let response = ureq::get(url)
             .call()
