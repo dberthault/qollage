@@ -40,8 +40,6 @@ use test_case::test_case;
 #[test_case(Operation::from(FSwap::new(0, 1)); "FSwap")]
 #[test_case(Operation::from(MeasureQubit::new(0,"ro".to_owned(), 0)); "MeasureQubit")]
 #[test_case(Operation::from(Toffoli::new(0, 1, 2)); "Toffoli")]
-// #[test_case(Operation::from(GateDefinition::new(vec![Operation::from(RotateX::new(0, CalculatorFloat::from("theta"))), Operation::from(RotateX::new(1, CalculatorFloat::PI))].into_iter().collect(), "test_gate".to_owned(), vec![0, 1], vec!["theta".to_owned()])); "GateDefinition")]
-// #[test_case(Operation::from(CallDefinedGate::new("test".to_owned(), vec![0, 1], vec![CalculatorFloat::from("3.14")])); "CallDefinedGate")]
 #[test_case(Operation::from(PragmaConditional::new("q".to_owned(), 0, Circuit::new())); "PragmaConditionalEmpty")]
 #[test_case(Operation::from(PragmaConditional::new("q".to_owned(), 0, [Operation::from(RotateX::new(0,CalculatorFloat::from("theta"))), Operation::from(RotateX::new(1,CalculatorFloat::from("pi")))].into_iter().collect())); "PragmaConditional")]
 #[test_case(Operation::from(PragmaLoop::new(CalculatorFloat::Float(5.2), vec![Operation::from(RotateX::new(0, CalculatorFloat::from("theta"))), Operation::from(RotateX::new(1, CalculatorFloat::PI))].into_iter().collect())); "PragmaLoop")]
@@ -128,7 +126,7 @@ fn test_add_gate(operation: Operation) {
     let mut circuit_lock: Vec<(usize, usize)> = Vec::new();
     let mut bosonic_lock: Vec<(usize, usize)> = Vec::new();
     let mut classical_lock: Vec<(usize, usize)> = Vec::new();
-    add_gate(
+    assert!(add_gate(
         &mut circuit_gates,
         &mut bosonic_gates,
         &mut classical_gates,
@@ -138,7 +136,7 @@ fn test_add_gate(operation: Operation) {
         &operation,
         &roqollage::RenderPragmas::All,
     )
-    .unwrap();
+    .is_ok());
 }
 
 #[test_case(Operation::from(PragmaStartDecompositionBlock::new(vec![], HashMap::new())); "PragmaStartDecompositionBlock")]
@@ -155,11 +153,54 @@ fn test_add_gate(operation: Operation) {
 #[test_case(Operation::from(PragmaGetPauliProduct::new(HashMap::from([(4, 4)]), "ro".into(), Circuit::new(),)); "PragmaGetPauliProduct")]
 #[test_case(Operation::from(PragmaGetPauliProduct::new(HashMap::from([]), "ro".into(), Circuit::new(),)); "PragmaGetPauliProduct2")]
 #[test_case(Operation::from(PragmaAnnotatedOp::new(InputBit::new("ro".to_owned(), 0, true).into(), "test".to_string())); "PragmaAnnotatedOp")]
-// #[test_case(Operation::from(CallDefinedGate::new("test".to_owned(), vec![], vec![CalculatorFloat::from("3.14")])); "CallDefinedGate")]
 #[test_case(Operation::from(PragmaControlledCircuit::new(10, vec![Operation::from(InputBit::new("ro".to_owned(), 0, true))].into_iter().collect())); "PragmaControlledCircuit")]
-// #[test_case(Operation::from(GateDefinition::new(vec![Operation::from(InputBit::new("ro".to_owned(), 0, true))].into_iter().collect(), "test_gate".to_owned(), vec![0, 1], vec!["theta".to_owned()])); "GateDefinition")]
-
 fn test_add_gate_errors(operation: Operation) {
+    let mut circuit_gates: Vec<Vec<String>> = Vec::new();
+    let mut bosonic_gates: Vec<Vec<String>> = Vec::new();
+    let mut classical_gates: Vec<Vec<String>> = Vec::new();
+    let mut circuit_lock: Vec<(usize, usize)> = Vec::new();
+    let mut bosonic_lock: Vec<(usize, usize)> = Vec::new();
+    let mut classical_lock: Vec<(usize, usize)> = Vec::new();
+    assert!(add_gate(
+        &mut circuit_gates,
+        &mut bosonic_gates,
+        &mut classical_gates,
+        &mut circuit_lock,
+        &mut bosonic_lock,
+        &mut classical_lock,
+        &operation,
+        &roqollage::RenderPragmas::All
+    )
+    .is_err(),);
+}
+
+#[cfg(feature = "unstable_operation_definition")]
+#[test_case(Operation::from(GateDefinition::new(vec![Operation::from(RotateX::new(0, CalculatorFloat::from("theta"))), Operation::from(RotateX::new(1, CalculatorFloat::PI))].into_iter().collect(), "test_gate".to_owned(), vec![0, 1], vec!["theta".to_owned()])); "GateDefinition")]
+#[test_case(Operation::from(CallDefinedGate::new("test".to_owned(), vec![0, 1], vec![CalculatorFloat::from("3.14")])); "CallDefinedGate")]
+fn test_add_gate_unstable(operation: Operation) {
+    let mut circuit_gates: Vec<Vec<String>> = Vec::new();
+    let mut bosonic_gates: Vec<Vec<String>> = Vec::new();
+    let mut classical_gates: Vec<Vec<String>> = Vec::new();
+    let mut circuit_lock: Vec<(usize, usize)> = Vec::new();
+    let mut bosonic_lock: Vec<(usize, usize)> = Vec::new();
+    let mut classical_lock: Vec<(usize, usize)> = Vec::new();
+    assert!(add_gate(
+        &mut circuit_gates,
+        &mut bosonic_gates,
+        &mut classical_gates,
+        &mut circuit_lock,
+        &mut bosonic_lock,
+        &mut classical_lock,
+        &operation,
+        &roqollage::RenderPragmas::All,
+    )
+    .is_ok());
+}
+
+#[cfg(feature = "unstable_operation_definition")]
+#[test_case(Operation::from(GateDefinition::new(vec![Operation::from(InputBit::new("ro".to_owned(), 0, true))].into_iter().collect(), "test_gate".to_owned(), vec![0, 1], vec!["theta".to_owned()])); "GateDefinition")]
+#[test_case(Operation::from(CallDefinedGate::new("test".to_owned(), vec![], vec![CalculatorFloat::from("3.14")])); "CallDefinedGate")]
+fn test_add_gate_unstable_errors(operation: Operation) {
     let mut circuit_gates: Vec<Vec<String>> = Vec::new();
     let mut bosonic_gates: Vec<Vec<String>> = Vec::new();
     let mut classical_gates: Vec<Vec<String>> = Vec::new();

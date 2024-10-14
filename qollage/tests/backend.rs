@@ -59,8 +59,8 @@ fn test_file() {
     Python::with_gil(|py| {
         let circuitpy = circuitpy_from_circuitru(py, circuit);
 
-        save_circuit(&circuitpy, None, 1.5, "PragmaOverrotation", None, None).unwrap();
-        save_circuit(
+        assert!(save_circuit(&circuitpy, None, 1.5, "PragmaOverrotation", None, None).is_ok());
+        assert!(save_circuit(
             &circuitpy,
             Some("..".into()),
             1.5,
@@ -68,8 +68,8 @@ fn test_file() {
             None,
             None,
         )
-        .unwrap();
-        save_circuit(
+        .is_ok());
+        assert!(save_circuit(
             &circuitpy,
             Some("qollage/circuit.png".into()),
             1.5,
@@ -77,8 +77,8 @@ fn test_file() {
             None,
             None,
         )
-        .unwrap();
-        save_circuit(
+        .is_ok());
+        assert!(save_circuit(
             &circuitpy,
             Some("../roqollage/circuit".into()),
             1.5,
@@ -86,8 +86,8 @@ fn test_file() {
             None,
             None,
         )
-        .unwrap();
-        save_circuit(
+        .is_ok());
+        assert!(save_circuit(
             &circuitpy,
             None,
             1.5,
@@ -95,7 +95,7 @@ fn test_file() {
             Some("Qubit".to_owned()),
             None,
         )
-        .unwrap();
+        .is_ok());
     });
     let paths = [
         "circuit.png",
@@ -184,8 +184,8 @@ fn test_str() {
     Python::with_gil(|py| {
         let circuitpy = circuitpy_from_circuitru(py, circuit);
 
-        circuit_to_typst_str(&circuitpy, "", None, None).unwrap();
-        circuit_to_typst_str(&circuitpy, "all", Some("Qubit".to_owned()), None).unwrap();
+        assert!(circuit_to_typst_str(&circuitpy, "", None, None).is_ok());
+        assert!(circuit_to_typst_str(&circuitpy, "all", Some("Qubit".to_owned()), None).is_ok());
     });
 }
 
@@ -261,15 +261,15 @@ fn test_draw() {
     Python::with_gil(|py| {
         let circuitpy = circuitpy_from_circuitru(py, circuit);
 
-        draw_circuit(&circuitpy, 0.5, "none", None, None).unwrap();
-        draw_circuit(
+        assert!(draw_circuit(&circuitpy, 0.5, "none", None, None).is_ok());
+        assert!(draw_circuit(
             &circuitpy,
             0.5,
             "PragmaOverrotation",
             Some("State".to_owned()),
             None,
         )
-        .unwrap();
+        .is_ok());
     });
 }
 
