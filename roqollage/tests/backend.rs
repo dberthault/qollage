@@ -47,13 +47,43 @@ fn test_str() {
     circuit.add_operation(SWAP::new(2, 1));
     circuit.add_operation(Toffoli::new(0, 1, 4));
 
-    circuit_into_typst_str(&circuit, RenderPragmas::None, None).unwrap();
-    circuit_into_typst_str(
+    assert!(circuit_into_typst_str(&circuit, RenderPragmas::None, None, None).is_ok());
+    assert!(circuit_into_typst_str(
         &circuit,
         RenderPragmas::None,
         Some(InitializationMode::Qubit),
+        None,
     )
-    .unwrap();
+    .is_ok());
+}
+
+#[test]
+#[serial]
+fn test_max_len() {
+    let mut circuit = Circuit::new();
+    for _ in 0..51 {
+        circuit.add_operation(Hadamard::new(0));
+        circuit.add_operation(MeasureQubit::new(0, "ro".to_owned(), 0));
+        circuit.add_operation(BeamSplitter::new(
+            0,
+            1,
+            CalculatorFloat::ZERO,
+            CalculatorFloat::FRAC_PI_4,
+        ));
+    }
+    circuit.add_operation(DefinitionBit::new("ro".to_owned(), 2, true));
+    circuit.add_operation(CNOT::new(0, 1));
+    circuit.add_operation(SWAP::new(2, 1));
+    circuit.add_operation(Toffoli::new(0, 1, 4));
+
+    assert!(circuit_into_typst_str(&circuit, RenderPragmas::None, None, None).is_ok());
+    assert!(circuit_into_typst_str(
+        &circuit,
+        RenderPragmas::None,
+        Some(InitializationMode::Qubit),
+        Some(20),
+    )
+    .is_ok());
 }
 
 #[test]
@@ -100,20 +130,22 @@ fn test_image() {
     circuit.add_operation(MeasureQubit::new(0, "ro".to_owned(), 0));
     circuit.add_operation(MeasureQubit::new(1, "ro".to_owned(), 1));
 
-    circuit_to_image(
+    assert!(circuit_to_image(
         &circuit,
         None,
         RenderPragmas::None,
         Some(InitializationMode::State),
+        None,
     )
-    .unwrap();
-    circuit_to_image(
+    .is_ok());
+    assert!(circuit_to_image(
         &circuit,
         None,
         RenderPragmas::None,
         Some(InitializationMode::Qubit),
+        None,
     )
-    .unwrap();
+    .is_ok());
 }
 
 #[test]
@@ -130,13 +162,14 @@ fn test_flatten() {
     circuit.add_operation(InputBit::new("ro".to_owned(), 0, true));
     circuit.add_operation(MeasureQubit::new(1, "ro2".to_owned(), 0));
 
-    circuit_to_image(
+    assert!(circuit_to_image(
         &circuit,
         None,
         RenderPragmas::None,
         Some(InitializationMode::State),
+        None,
     )
-    .unwrap();
+    .is_ok());
 }
 
 #[test]
@@ -164,13 +197,14 @@ fn test_flatten_boson() {
     ));
     circuit.add_operation(MeasureQubit::new(0, "ro".to_owned(), 1));
 
-    circuit_to_image(
+    assert!(circuit_to_image(
         &circuit,
         None,
         RenderPragmas::None,
         Some(InitializationMode::State),
+        None,
     )
-    .unwrap();
+    .is_ok());
 }
 
 #[test]
@@ -188,13 +222,14 @@ fn test_resonator() {
     ));
     circuit.add_operation(CZQubitResonator::new(0, 2));
 
-    circuit_to_image(
+    assert!(circuit_to_image(
         &circuit,
         None,
         RenderPragmas::None,
         Some(InitializationMode::State),
+        None,
     )
-    .unwrap();
+    .is_ok());
 }
 
 #[test]
@@ -228,7 +263,7 @@ fn test_values() {
         CalculatorFloat::Float((-3.0 * PI / 4.0).into()),
     ));
 
-    circuit_into_typst_str(&circuit, RenderPragmas::None, None).unwrap();
+    assert!(circuit_into_typst_str(&circuit, RenderPragmas::None, None, None).is_ok());
 }
 
 #[test]
@@ -236,5 +271,5 @@ fn test_values() {
 fn test_backend_today() {
     let backend = TypstBackend::new("#datetime.today().display()".to_owned()).unwrap();
     let mut tracer = Tracer::default();
-    let _doc = typst::compile(&backend, &mut tracer).unwrap();
+    assert!(typst::compile(&backend, &mut tracer).is_ok());
 }
