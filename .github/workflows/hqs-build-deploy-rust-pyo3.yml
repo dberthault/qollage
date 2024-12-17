@@ -37,6 +37,8 @@ jobs:
     with:
       py_interface_folder: "qollage"
       deploy: true
+      # Whether to build for python 3.13. To remove after updating to pyo3 0.22
+      python_3_13: false
       # Whether to build for aarch64. Can fail if there are C/C++ dependencies
       build_for_arm: false
     secrets: inherit
