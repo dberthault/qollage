@@ -58,7 +58,6 @@ fn test_file() {
     pyo3::prepare_freethreaded_python();
     Python::with_gil(|py| {
         let circuitpy = circuitpy_from_circuitru(py, circuit);
-
         assert!(save_circuit(&circuitpy, None, 1.5, "PragmaOverrotation", None, None).is_ok());
         assert!(save_circuit(
             &circuitpy,
