@@ -2,6 +2,10 @@
 
 This changelog track changes to the qollage project starting at version v0.1.0
 
+## Unpublished
+
+* Updated minimum supported Python version to 3.10.
+
 ## 0.8.0
 
 * Updated to pyo3 0.25, ureq 3.0, typst 0.13 and quill 0.7.
