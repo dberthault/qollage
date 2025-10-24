@@ -619,11 +619,11 @@ pub fn circuit_into_typst_str(
             split_gates(&mut classical_gates, max_circuit_length, &new_len_map);
     }
     let mut is_first = true;
-    for (n_qubit, gates) in circuit_gates.iter().enumerate() {
+    for (qubit_index, gates) in circuit_gates.iter().enumerate() {
         typst_str.push_str(&format!(
             "       lstick(${}${}), {} 1, {}[\\ ],\n",
             match initialization_mode {
-                Some(InitializationMode::Qubit) => format!("q[{n_qubit}]"),
+                Some(InitializationMode::Qubit) => format!("q[{qubit_index}]"),
                 Some(InitializationMode::State) | None => "|0>".to_owned(),
             },
             if is_first {
@@ -700,10 +700,10 @@ pub fn circuit_into_typst_str(
         for chunk_number in 0..number_of_chunks {
             if let Some(ref add_circuit_gates) = additional_circuit_gates {
                 let current_chunk = &add_circuit_gates[chunk_number];
-                for (n_qubit, gates) in current_chunk.iter().enumerate() {
+                for (qubit_index, gates) in current_chunk.iter().enumerate() {
                     typst_str.push_str(&format!(
                         "lstick($···q[{}]$), {}, 1, {}[\\ ],\n",
-                        n_qubit,
+                        qubit_index,
                         gates
                             .iter()
                             .map(|gate| {
@@ -727,10 +727,10 @@ pub fn circuit_into_typst_str(
             }
             if let Some(ref add_bosonic_gates) = additional_bosonic_gates {
                 let current_chunk = &add_bosonic_gates[chunk_number];
-                for (n_qubit, gates) in current_chunk.iter().enumerate() {
+                for (qubit_index, gates) in current_chunk.iter().enumerate() {
                     typst_str.push_str(&format!(
                         "lstick($···b[{}]$), {}, 1, {}[\\ ],\n",
-                        n_qubit,
+                        qubit_index,
                         gates.join(", "),
                         if chunk_number != number_of_chunks - 1 {
                             "rstick($···$),"

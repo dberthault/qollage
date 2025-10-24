@@ -7,7 +7,7 @@ This changelog track changes to the qollage project starting at version v0.1.0
 ## 0.9.1
 
 * Fixed a bug that would cause an infinite loop when using a large `max_circuit_len`.
-* Improved the visuals for multi-pages circuit.
+* Improved the visuals for multi-page circuit.
 
 ## 0.9.0
 
